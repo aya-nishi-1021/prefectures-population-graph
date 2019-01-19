@@ -1,15 +1,15 @@
 .contentsWrapper {
   margin: 0;
-  padding: 0;
+  padding: 60px 0;
   text-align: center;
 
   h1 {
-    margin: 60px 0;
+    margin-bottom: 60px;
   }
 
   ul {
     width: 60%;
-    margin: 0 auto;
+    margin: 60px auto;
     padding: 0;
     text-align: left;
   
@@ -22,6 +22,22 @@
     }
   }
 
+  .recharts-wrapper {
+    margin: 0 auto;
+
+    .recharts-legend-wrapper {
+      padding-top: 20px;
+  
+      .recharts-default-legend {
+        width: 100%; 
+      }
+    }
+
+    .recharts-default-tooltip {
+      padding: 0;
+      width: 220px;
+    }
+  }
 }
 
 

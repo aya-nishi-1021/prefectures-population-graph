@@ -1,14 +1,35 @@
 import React from "react";
 import ReactDOM from "react-dom";
-
+import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
 import "./index.scss";
 
-class App extends React.Component {
+// 47つのカラーコードを生成
+const colors = [];
+for(var i = 0; i < 47; i++) {
+    let r = ('0' + Math.floor(Math.random() * 255).toString(16)).slice(-2);
+    let g = ('0' + Math.floor(Math.random() * 255).toString(16)).slice(-2);
+    let b = ('0' + Math.floor(Math.random() * 255).toString(16)).slice(-2);
+    let color = '#' + r + g + b;
+    colors.push(color);
+}
+
+class App extends React.Component {  
 
     state = {
         checkbox: Array(47).fill(false),
         prefectures: [], // RESAS APIから取得した「都道府県一覧」（prefCode, PrefName）
-        prefTrendData: [] // RESAS APIから取得した「人口構成」（year, value）+ prefCode
+        trendData: [
+            { year: 1960 },
+            { year: 1970 },
+            { year: 1980 }, 
+            { year: 1990 },
+            { year: 2000 },
+            { year: 2010 },
+            { year: 2020 },
+            { year: 2030 },
+            { year: 2040 }
+        ], // RESAS APIから取得した「人口構成」（value）+ prefName
+        colorCode: colors
     };
 
     componentDidMount() {
@@ -27,7 +48,7 @@ class App extends React.Component {
         // チェックされていなかった(falseの)場合はチェックを入れる(trueに)。逆も同様
         this.state.checkbox[index] = !this.state.checkbox[index];
         this.setState({ checkbox: this.state.checkbox });
-        // チェックした場合はチェックした都道府県の「人口構成」を取得し、prefCodeと一緒にprefTrendDataに追加
+        // チェックした場合はチェックした都道府県の「人口構成」を取得し、prefNameと一緒にtrendDataに追加
         if(this.state.checkbox[index]) {
             fetch(`https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=${index + 1}`, {
                 headers: { 'X-API-KEY': 'laQNIVQSq86KoGBF9t0pEsDTR5h9Ejs9EXm1spwN' }
@@ -40,25 +61,36 @@ class App extends React.Component {
                 // console.log(res.result.data[0].data[2].year); // 1970
                 // console.log(res.result.data[0].data[2].value); // 1970年の人口
                 // console.log(this.state.prefectures[index].prefName); // 都道府県の名前
-                const trendData = [];
-                for(var i = 0; i < 18; i++) {
-                    if(i % 2 === 0) {
-                        trendData.push(res.result.data[0].data[i]);
-                    }
-                }
-                const newPrefTrendData = this.state.prefTrendData.concat({
-                    prefCode: this.state.prefectures[index].prefCode,
-                    data: trendData
-                })
-                this.setState({ prefTrendData: newPrefTrendData });
+                // console.log(res.result.data[0].data[0].year); // 1960 
+                // console.log(this.state.trendData[0].year); // 1960
+                // console.log(res.result.data[0].data[0].value); // 1960の人口
+                // console.log(this.state.trendData.length);
+                // console.log(this.state.trendData[0]);
+
+                // チェックした都道府県の名前
+                const thisPrefName = this.state.prefectures[index].prefName;
+                const trendDataCopy = this.state.trendData.slice();
+                // チェックした都道府県の10年毎の人口データをtrendDataに追加
+                for(var i = 0; i < res.result.data[0].data.length; i++) {
+                     for(var j = 0; j < trendDataCopy.length; j++) {
+                         if(res.result.data[0].data[i].year === trendDataCopy[j].year) {
+                            trendDataCopy[j][thisPrefName] = res.result.data[0].data[i].value
+                         }
+                     }
+                 }
+                 this.setState({ trendData: trendDataCopy });
+                 console.log(this.state.trendData);
             });
-        } else { // チェックを外した場合はチェックを外した都道府県の「人口構成」とprefCodeのデータをpredTrendDataから削除
-            for(var i = 0; i < this.state.prefTrendData.length; i++) {
-                if(this.state.prefTrendData[i].prefCode === this.state.prefectures[index].prefCode) {
-                    this.state.prefTrendData.splice(i, 1);
-                }
+        } else { // チェックを外した場合はチェックを外した都道府県のデータをtrendDataから削除
+            // チェックを外した都道府県の名前
+            const thisPrefName = this.state.prefectures[index].prefName;
+            const trendDataCopy = this.state.trendData.slice();
+            // チェックを外した都道府県の人口データをtrendDataから削除
+            for(var i = 0; i < trendDataCopy.length; i++) {
+                delete trendDataCopy[i][thisPrefName];
             }
-            this.setState({ prefTrendData: this.state.prefTrendData });
+            this.setState({ trendData: trendDataCopy });
+            console.log(this.state.trendData);
         }
     }  
 
@@ -77,22 +109,21 @@ class App extends React.Component {
                     );
                 })}
             </ul>
-            <ul>
-                {this.state.prefTrendData.map((data, index) => {
-                    return (
-                        <li key={data.prefCode}>
-                            {data.data.map((d, index) => {
-                                return (
-                                    <span key={d.year}>
-                                        {d.year}:{d.value}<br/>
-                                    </span>
-                                );
-                            })}
-                        </li>
-                    );
-                })}
-            </ul>
             
+            <div className="graphWrapper">
+                <LineChart width={1200} height={800}  margin={{left: 30, right: 10}} data={this.state.trendData}>
+                    <CartesianGrid stroke="#ccc" strokeDasharray="5 5"/>
+                    <XAxis dataKey='year' />
+                    <YAxis />
+                    {this.state.prefectures.map((pref, index) => {
+                        return (
+                            <Line type="monotone" dataKey={pref.prefName} stroke={this.state.colorCode[index]} key={pref.prefCode}/>
+                        );
+                    })}   
+                    <Tooltip />
+                    <Legend />                    
+                </LineChart>
+            </div>
         </div>
     );
   }
