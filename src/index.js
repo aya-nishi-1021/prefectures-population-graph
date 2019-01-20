@@ -15,7 +15,6 @@ for(var i = 0; i < 47; i++) {
 }
 
 class App extends React.Component {  
-
     state = {
         checkbox: Array(47).fill(false),
         prefectures: [], // RESAS APIから取得した「都道府県一覧」（prefCode, PrefName）
@@ -39,8 +38,6 @@ class App extends React.Component {
         })
         .then(response => response.json())
         .then(res => {
-            // console.log(res.result); ⇨ {prefCode: 1 prefName: "北海道"},{prefCode: 2, prefName: "青森県"},,,
-            // console.log(res.result[1].prefName); ⇨ 青森県
             this.setState({ prefectures: res.result });
         });
     }
@@ -56,18 +53,6 @@ class App extends React.Component {
             })
             .then(response => response.json())
             .then(res => {
-                // console.log(res.result.data[0].data); // 1960-2045の間で、5年毎のyearと人口
-                // console.log(res.result.data[0].data[0].year); // 1960
-                // console.log(res.result.data[0].data[0].value); // 1960年の人口
-                // console.log(res.result.data[0].data[2].year); // 1970
-                // console.log(res.result.data[0].data[2].value); // 1970年の人口
-                // console.log(this.state.prefectures[index].prefName); // 都道府県の名前
-                // console.log(res.result.data[0].data[0].year); // 1960 
-                // console.log(this.state.trendData[0].year); // 1960
-                // console.log(res.result.data[0].data[0].value); // 1960の人口
-                // console.log(this.state.trendData.length);
-                // console.log(this.state.trendData[0]);
-
                 // チェックした都道府県の名前
                 const thisPrefName = this.state.prefectures[index].prefName;
                 const trendDataCopy = this.state.trendData.slice();
@@ -95,8 +80,7 @@ class App extends React.Component {
         }
     }  
 
-  render() {
-      
+  render() {   
     return (
         <div className="contentsWrapper">
             <h1>都道府県別の総人口推移グラフ</h1>
