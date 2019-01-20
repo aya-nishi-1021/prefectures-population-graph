@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import {LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend} from 'recharts';
+import apiKey from './apiKey';
 import "./index.scss";
 
 // 47つのカラーコードを生成
@@ -34,7 +35,7 @@ class App extends React.Component {
 
     componentDidMount() {
         fetch('https://opendata.resas-portal.go.jp/api/v1/prefectures', {
-            headers: { 'X-API-KEY': 'laQNIVQSq86KoGBF9t0pEsDTR5h9Ejs9EXm1spwN' }
+            headers: { 'X-API-KEY': apiKey }
         })
         .then(response => response.json())
         .then(res => {
@@ -51,7 +52,7 @@ class App extends React.Component {
         // チェックした場合はチェックした都道府県の「人口構成」を取得し、prefNameと一緒にtrendDataに追加
         if(this.state.checkbox[index]) {
             fetch(`https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=${index + 1}`, {
-                headers: { 'X-API-KEY': 'laQNIVQSq86KoGBF9t0pEsDTR5h9Ejs9EXm1spwN' }
+                headers: { 'X-API-KEY': apiKey }
             })
             .then(response => response.json())
             .then(res => {
