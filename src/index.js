@@ -32,6 +32,7 @@ class App extends React.Component {
         colorCode: colors
     };
 
+    // 都道府県の一覧を取得し、prefecturesにセット
     componentDidMount() {
         fetch('https://opendata.resas-portal.go.jp/api/v1/prefectures', {
             headers: { 'X-API-KEY': apiKey }
@@ -44,18 +45,18 @@ class App extends React.Component {
 
     handleChangeCheckbox = index => {
         // チェックされていなかった(falseの)場合はチェックを入れる(trueに)。逆も同様
-        this.state.checkbox[index] = !this.state.checkbox[index];
-        this.setState({ checkbox: this.state.checkbox });
+        const checkboxCopy = this.state.checkbox.slice();
+        checkboxCopy[index] = !checkboxCopy[index];
+        // チェックした（チェックを外した）都道府県の名前
+        const thisPrefName = this.state.prefectures[index].prefName;
+        const trendDataCopy = this.state.trendData.slice();
         // チェックした場合はチェックした都道府県の「人口構成」を取得し、prefNameと一緒にtrendDataに追加
-        if(this.state.checkbox[index]) {
+        if(checkboxCopy[index]) {
             fetch(`https://opendata.resas-portal.go.jp/api/v1/population/composition/perYear?cityCode=-&prefCode=${index + 1}`, {
                 headers: { 'X-API-KEY': apiKey }
             })
             .then(response => response.json())
             .then(res => {
-                // チェックした都道府県の名前
-                const thisPrefName = this.state.prefectures[index].prefName;
-                const trendDataCopy = this.state.trendData.slice();
                 // チェックした都道府県の10年毎の人口データをtrendDataに追加
                 for(var i = 0; i < res.result.data[0].data.length; i++) {
                      for(var j = 0; j < trendDataCopy.length; j++) {
@@ -64,19 +65,14 @@ class App extends React.Component {
                          }
                      }
                  }
-                 this.setState({ trendData: trendDataCopy });
-                 console.log(this.state.trendData);
+                 this.setState({ checkbox: checkboxCopy, trendData: trendDataCopy });
             });
-        } else { // チェックを外した場合はチェックを外した都道府県のデータをtrendDataから削除
-            // チェックを外した都道府県の名前
-            const thisPrefName = this.state.prefectures[index].prefName;
-            const trendDataCopy = this.state.trendData.slice();
+        } else { 
             // チェックを外した都道府県の人口データをtrendDataから削除
             for(var i = 0; i < trendDataCopy.length; i++) {
                 delete trendDataCopy[i][thisPrefName];
             }
-            this.setState({ trendData: trendDataCopy });
-            console.log(this.state.trendData);
+            this.setState({ checkbox: checkboxCopy, trendData: trendDataCopy });
         }
     }  
 
